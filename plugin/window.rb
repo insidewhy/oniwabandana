@@ -1,3 +1,5 @@
+require 'match'
+
 module Oniwabandana
   class Window
     GLOBAL_ONLY_OPTS = { 'hlsearch' => true, 'scrolloff' => true, 'omnifunc' => true  }
@@ -17,11 +19,16 @@ module Oniwabandana
     end
 
     def show_matches
+      if @matches.size < $curbuf.count
+        VIM::command("silent! resize #{@matches.size + 1}")
+      end
+      # todo: handle window size increase on relaxed match (after backspace)
+
       # avoid copying the matches array in ruby 2.0+
       matches = @matches.respond_to?(:lazy) ? @matches.lazy : @matches
-      matches.drop(@offset).take(@max_options).each_with_index do |file, idx|
+      matches.drop(@offset).take(@max_options).each_with_index do |match, idx|
         prefix = idx == @selected_idx ? '> ' : '  '
-        $curbuf[idx + 2] = prefix + file
+        $curbuf[idx + 2] = prefix + match.filename
       end
     end
 
@@ -58,7 +65,7 @@ module Oniwabandana
 
     def show files
       @files = files
-      @matches = @files.dup
+      @matches = @files.map { |file| Match.new file }
 
       if @has_buffer
         VIM::command("silent! #{@opts.height} split SearchFiles")
@@ -77,12 +84,11 @@ module Oniwabandana
         set 'scrolloff=0'
         @has_buffer = true
 
-        # the cmd line always has a space at the end so the cursor can be there
         @max_options.times do
           # create empty lines in the buffer for manipulation later
           $curbuf.append(0, '')
         end
-        # always has a space at the end for the cursor
+        # the cmd line always has a space at the end so the cursor can be there
         $curbuf.line = ' '
         false
       end
@@ -138,7 +144,16 @@ module Oniwabandana
       # replace old space at end with char and add a new one after it
       $curbuf.line = $curbuf.line[0..-2] + char + ' '
       move_cursor 1
+      update_matches
+    end
+
+    # called after changes to @criteria to update matches
+    def update_matches
       p @criteria
+      @matches.each { |match| match.calculate_score! @criteria }
+      @matches.select! &:matching?
+      @matches.sort!
+      show_matches
     end
 
     def move_cursor offset
@@ -148,6 +163,8 @@ module Oniwabandana
 
     def backspace
       return if @cursor_pos == 0
+      $curbuf.line = $curbuf.line[0..-3] + ' '
+      move_cursor -1
       if @finished_criteria
         @finished_criteria = false
       else
@@ -157,10 +174,8 @@ module Oniwabandana
           @finished_criteria = true
         end
         # todo: update matches based on new criteria
+        update_matches
       end
-      $curbuf.line = $curbuf.line[0..-3] + ' '
-      move_cursor -1
-      p @criteria
     end
 
     def accept
