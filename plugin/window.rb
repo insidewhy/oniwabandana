@@ -4,7 +4,8 @@ module Oniwabandana
     SELECTED_PREFIX = '> '
 
     def initialize opts
-      @max_options = opts.height - 1
+      @opts = opts
+      @max_options = @opts.height - 1
       @selected_idx = 0 # of window entry from top
       @files = nil # all potential files
       @matches = nil # files matching current search paramters
@@ -33,9 +34,9 @@ module Oniwabandana
         scroll(new_sel_idx - @max_options + 1)
         @selected_idx = @max_options - 1
       else
+        $curbuf[@selected_idx + 2] = '  ' + $curbuf[@selected_idx + 2][2..-1]
+        $curbuf[new_sel_idx + 2] = '> ' + $curbuf[new_sel_idx + 2][2..-1]
         @selected_idx = new_sel_idx
-        # TODO: just move cursor instead
-        show_matches
       end
     end
 
@@ -60,10 +61,10 @@ module Oniwabandana
       @matches = @files.dup
 
       if @has_buffer
-        VIM::command("silent! #{@max_options + 1} split SearchFiles")
+        VIM::command("silent! #{@opts.height} split SearchFiles")
         true
       else
-        VIM::command("silent! #{@max_options + 1} new SearchFiles")
+        VIM::command("silent! #{@opts.height} new SearchFiles")
         set 'nohlsearch'
         set 'noinsertmode'
         set 'buftype=nofile'
@@ -104,7 +105,7 @@ module Oniwabandana
         '<C-c>' => 'Hide',
         '<C-h>' => 'Backspace',
         '<BS>' => 'Backspace',
-        # '<Esc>' => 'Hide'
+        # '<Esc>' => 'Hide' # messes with arrow keys
       }
       special.each do |key, val|
         map key, val
