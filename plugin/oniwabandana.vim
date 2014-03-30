@@ -7,27 +7,27 @@ end
 EOF
 
 function OniwaHandleKey(k)
-  ruby $oniwapp.key_press VIM::evaluate('a:k')
+  ruby $oniwapp.window.key_press VIM::evaluate('a:k')
 endfunction
 
 function OniwaAccept()
-  ruby $oniwapp.accept
+  ruby $oniwapp.window.accept
 endfunction
 
 function OniwaHide()
-  ruby $oniwapp.hide
+  ruby $oniwapp.window.hide
 endfunction
 
 function OniwaBackspace()
-  ruby $oniwapp.backspace
+  ruby $oniwapp.window.backspace
 endfunction
 
 function OniwaSelectNext()
-  ruby $oniwapp.select 1
+  ruby $oniwapp.window.select 1
 endfunction
 
 function OniwaSelectPrev()
-  ruby $oniwapp.select -1
+  ruby $oniwapp.window.select -1
 endfunction
 
 function OniwaIgnore()
