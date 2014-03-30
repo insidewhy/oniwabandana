@@ -1,16 +1,16 @@
 module Oniwabandana
-  class OniwaOpts
+  class Opts
     attr_accessor :height
     def initialize
       @height = 10
     end
   end
 
-  # TODO: move stuff from Oniwapp into this?
-  class OniWindow
+  # TODO: move stuff from App into this?
+  class Window
   end
 
-  class Oniwapp
+  class App
     GLOBAL_ONLY_OPTS = { 'hlsearch' => true, 'scrolloff' => true, 'omnifunc' => true  }
     SELECTED_PREFIX = '> '
 
@@ -20,6 +20,9 @@ module Oniwabandana
       @files = nil # all potential files
       @matches = nil # files matching current search paramters
       @offset = 0 # current offset from first match
+      @criteria = []
+      # true at beginning or if space was previous key pressed
+      @finished_criteria = true
     end
 
     def search dir
@@ -37,7 +40,8 @@ module Oniwabandana
       # avoid copying the matches array in ruby 2.0+
       matches = @matches.respond_to?(:lazy) ? @matches.lazy : @matches
       matches.drop(@offset).take(n_visible_matches).each_with_index do |file, idx|
-        $curbuf[idx + 2] = file
+        prefix = idx == @selected_idx ? '> ' : '  '
+        $curbuf[idx + 2] = prefix + file
       end
     end
 
@@ -115,9 +119,24 @@ module Oniwabandana
     end
 
     def key_press key
-      # TODO: something like...
-      # $curbuf.line += key.to_char
-      p key
+      char = key.to_i.chr
+      if char == ' '
+        unless @finished_criteria
+          $curbuf.line += ' '
+          @finished_criteria = true
+        end
+        return
+      end
+
+      if @finished_criteria
+        @criteria << char
+        @finished_criteria = false
+      else
+        @criteria[-1] += char
+      end
+
+      $curbuf.line += char
+      p @criteria
     end
 
     def accept

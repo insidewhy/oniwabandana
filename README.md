@@ -2,7 +2,7 @@
 
 Oniwabandana doesn't work yet.
 
-It is a vim plugin for finding files. It brings up a list of all the files in your current directory or source tree and then you can type words to filter what is shown. If you hit space then the next word becomes another filter (or you can hit two spaces to use an actual space). It tries to show the files in a smart order
+It is a vim plugin for finding files. It brings up a list of all the files in your current directory or source tree and then you can type words to filter what is shown. If you hit space then the next word becomes another filter (or you can hit two spaces to use an actual space). It tries to show the files in a smart order. When you've found the right file you can hit enter to open it, ctrl-T to open it in a new tab or ctrl-C to close the completion list (the keys are configurable).
 
 It doesn't need any C compilation step but it needs vim to be built with ruby support (vim --version | grep '+ruby').
 

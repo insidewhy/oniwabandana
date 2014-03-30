@@ -2,7 +2,7 @@ ruby <<EOF
 $LOAD_PATH << File.dirname(VIM::evaluate 'expand("<sfile>")')
 require 'oniwabandana.rb'
 module Oniwabandana
-  $oniwapp = Oniwapp.new(OniwaOpts.new)
+  $oniwapp = App.new(Opts.new)
 end
 EOF
 
