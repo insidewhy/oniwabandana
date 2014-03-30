@@ -18,6 +18,10 @@ function OniwaHide()
   ruby $oniwapp.hide
 endfunction
 
+function OniwaBackspace()
+  ruby $oniwapp.backspace
+endfunction
+
 function OniwaSelectNext()
   ruby $oniwapp.select 1
 endfunction

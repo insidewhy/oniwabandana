@@ -20,6 +20,7 @@ module Oniwabandana
       @files = nil # all potential files
       @matches = nil # files matching current search paramters
       @offset = 0 # current offset from first match
+      @cursor_pos = 0 # cursor offset from left hand side
       @criteria = []
       # true at beginning or if space was previous key pressed
       @finished_criteria = true
@@ -83,10 +84,14 @@ module Oniwabandana
         set 'textwidth=0'
         set 'scrolloff=0'
         @has_buffer = true
+
+        # the cmd line always has a space at the end so the cursor can be there
         n_visible_matches.times do
           # create empty lines in the buffer for manipulation later
           $curbuf.append(0, '')
         end
+        # always has a space at the end for the cursor
+        $curbuf.line = ' '
         false
       end
     end
@@ -106,6 +111,8 @@ module Oniwabandana
         '<Up>' => 'SelectPrev',
         '<Down>' => 'SelectNext',
         '<C-c>' => 'Hide',
+        '<C-h>' => 'Backspace',
+        '<BS>' => 'Backspace',
         # '<Esc>' => 'Hide'
       }
       special.each do |key, val|
@@ -123,6 +130,7 @@ module Oniwabandana
       if char == ' '
         unless @finished_criteria
           $curbuf.line += ' '
+          move_cursor 1
           @finished_criteria = true
         end
         return
@@ -135,8 +143,21 @@ module Oniwabandana
         @criteria[-1] += char
       end
 
-      $curbuf.line += char
+      # replace old space at end with char and add a new one after it
+      $curbuf.line = $curbuf.line[0..-2] + char + ' '
+      move_cursor 1
       p @criteria
+    end
+
+    def move_cursor offset
+      @cursor_pos += offset
+      $curwin.cursor = [ 0, @cursor_pos ]
+    end
+
+    def backspace
+      if @finished_criteria
+        # todo
+      end
     end
 
     def accept
