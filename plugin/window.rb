@@ -4,7 +4,7 @@ module Oniwabandana
     SELECTED_PREFIX = '> '
 
     def initialize opts
-      @opts = opts
+      @max_options = opts.height - 1
       @selected_idx = 0 # of window entry from top
       @files = nil # all potential files
       @matches = nil # files matching current search paramters
@@ -18,7 +18,7 @@ module Oniwabandana
     def show_matches
       # avoid copying the matches array in ruby 2.0+
       matches = @matches.respond_to?(:lazy) ? @matches.lazy : @matches
-      matches.drop(@offset).take(n_visible_matches).each_with_index do |file, idx|
+      matches.drop(@offset).take(@max_options).each_with_index do |file, idx|
         prefix = idx == @selected_idx ? '> ' : '  '
         $curbuf[idx + 2] = prefix + file
       end
@@ -29,9 +29,9 @@ module Oniwabandana
       if new_sel_idx < 0
         scroll new_sel_idx
         @selected_idx = 0
-      elsif new_sel_idx >= n_visible_matches
-        scroll(new_sel_idx - n_visible_matches + 1)
-        @selected_idx = n_visible_matches - 1
+      elsif new_sel_idx >= @max_options
+        scroll(new_sel_idx - @max_options + 1)
+        @selected_idx = @max_options - 1
       else
         @selected_idx = new_sel_idx
         # TODO: just move cursor instead
@@ -41,13 +41,9 @@ module Oniwabandana
 
     def scroll offset
       new_offset = @offset + offset
-      return if new_offset < 0 or new_offset > (@matches.length - n_visible_matches)
+      return if new_offset < 0 or new_offset > (@matches.length - @max_options)
       @offset = new_offset
       show_matches
-    end
-
-    def n_visible_matches
-      @opts.height - 1
     end
 
     def set cmd
@@ -64,10 +60,10 @@ module Oniwabandana
       @matches = @files.dup
 
       if @has_buffer
-        VIM::command("silent! #{@opts.height} split SearchFiles")
+        VIM::command("silent! #{@max_options + 1} split SearchFiles")
         true
       else
-        VIM::command("silent! #{@opts.height} new SearchFiles")
+        VIM::command("silent! #{@max_options + 1} new SearchFiles")
         set 'nohlsearch'
         set 'noinsertmode'
         set 'buftype=nofile'
@@ -81,7 +77,7 @@ module Oniwabandana
         @has_buffer = true
 
         # the cmd line always has a space at the end so the cursor can be there
-        n_visible_matches.times do
+        @max_options.times do
           # create empty lines in the buffer for manipulation later
           $curbuf.append(0, '')
         end
