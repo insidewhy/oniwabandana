@@ -136,9 +136,20 @@ module Oniwabandana
     end
 
     def backspace
+      return if @cursor_pos == 0
       if @finished_criteria
-        # todo
+        @finished_criteria = false
+      else
+        @criteria[-1] = @criteria.last[0..-2]
+        if @criteria.last.empty?
+          @criteria.pop
+          @finished_criteria = true
+        end
+        # todo: update matches based on new criteria
       end
+      $curbuf.line = $curbuf.line[0..-3] + ' '
+      move_cursor -1
+      p @criteria
     end
 
     def accept
