@@ -25,7 +25,21 @@ module Oniwabandana
     end
 
     def select offset
-      # TODO: first scroll cursor down?
+      new_sel_idx = @selected_idx + offset
+      if new_sel_idx < 0
+        scroll new_sel_idx
+        @selected_idx = 0
+      elsif new_sel_idx >= n_visible_matches
+        scroll(new_sel_idx - n_visible_matches + 1)
+        @selected_idx = n_visible_matches - 1
+      else
+        @selected_idx = new_sel_idx
+        # TODO: just move cursor instead
+        show_matches
+      end
+    end
+
+    def scroll offset
       new_offset = @offset + offset
       return if new_offset < 0 or new_offset > (@matches.length - n_visible_matches)
       @offset = new_offset
