@@ -17,21 +17,40 @@ module Oniwabandana
     def initialize opts
       @opts = opts
       @selected_idx = 0 # of window entry from top
+      @files = nil # all potential files
+      @matches = nil # files matching current search paramters
+      @offset = 0 # current offset from first match
     end
 
     def search dir
       dir ||= '.'
-      files = `git ls-files`.split "\n"
+      @files = `git ls-files`.split "\n"
+      @matches = @files
 
       unless show
-        files.each_with_index do |file, idx|
-          $curbuf.append(idx, file)
-        end
+        show_matches
         register_for_keys
       end
     end
 
+    def show_matches
+      # avoid copying the matches array in ruby 2.0+
+      matches = @matches.respond_to?(:lazy) ? @matches.lazy : @matches
+      matches.drop(@offset).take(n_visible_matches).each_with_index do |file, idx|
+        $curbuf[idx + 2] = file
+      end
+    end
+
     def select offset
+      # TODO: first scroll cursor down?
+      new_offset = @offset + offset
+      return if new_offset < 0 or new_offset > (@matches.length - n_visible_matches)
+      @offset = new_offset
+      show_matches
+    end
+
+    def n_visible_matches
+      @opts.height - 1
     end
 
     def set cmd
@@ -60,6 +79,10 @@ module Oniwabandana
         set 'textwidth=0'
         set 'scrolloff=0'
         @has_buffer = true
+        n_visible_matches.times do
+          # create empty lines in the buffer for manipulation later
+          $curbuf.append(0, '')
+        end
         false
       end
     end
@@ -76,8 +99,8 @@ module Oniwabandana
         '<CR>' => 'Accept',
         '<Left>' => 'Ignore',
         '<Right>' => 'Ignore',
-        # '<Up>' => 'SelectNext',
-        # '<Down>' => 'SelectPrev',
+        '<Up>' => 'SelectPrev',
+        '<Down>' => 'SelectNext',
         '<C-c>' => 'Hide',
         # '<Esc>' => 'Hide'
       }
@@ -92,6 +115,8 @@ module Oniwabandana
     end
 
     def key_press key
+      # TODO: something like...
+      # $curbuf.line += key.to_char
       p key
     end
 
