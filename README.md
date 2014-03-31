@@ -1,6 +1,6 @@
 # Oniwabandana
 
-Oniwabandana doesn't yet score files that well or support the backspace key, configurable keys or a key for opening the selected file in a new match.
+Oniwabandana doesn't yet support the backspace key or allow configuration of keys but its almost working.
 
 Oniwabandana is a vim plugin for finding files. It brings up a list of all the files in your current directory or source tree and then you can type words to filter what is shown. If you hit space then the next word becomes another filter (or you can hit two spaces to use an actual space). It tries to show the files in a smart order. When you've found the right file you can hit enter to open it, ctrl-T to open it in a new tab or ctrl-C to close the completion list (the keys are configurable).
 

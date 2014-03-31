@@ -6,6 +6,7 @@ module Oniwabandana
 
     def initialize filename
       @filename = filename
+      @file_idx = filename.rindex('/') || 0
       @score = 0
       # match info one per criterion
       @matches = []
@@ -23,9 +24,10 @@ module Oniwabandana
           @score = -1
         else
           multiplier = 1
-          multiplier = 2 if idx == 0 || '_/ '.index(@filename[idx - 1])
-          @score += multiplier * 10
+          multiplier *= 2 if idx == 0 || '._/ '.index(@filename[idx - 1])
+          multiplier *= 2 if idx >= @file_idx
           @matches << CriterionMatch.new(multiplier * 10, idx, multiplier)
+          @score += @matches.last.score
         end
       else
         # the last criterion was updated
