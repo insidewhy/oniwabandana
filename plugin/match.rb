@@ -8,7 +8,12 @@ module Oniwabandana
       @matches = []
     end
 
-    def calculate_score! criteria
+    # Recalculate @score
+    # Params:
+    # +criteria+:: Array of strings to apply as criteria.
+    # +restriction+:: Whether the criteria change is restrictive or permissive.
+    def calculate_score! criteria, restriction
+      # todo: support restriction = false
       if criteria.last.size == 1
         offset = @matches.empty? ? 0 : @matches.last
         idx = @filename.index criteria.first, offset

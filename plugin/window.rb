@@ -144,13 +144,13 @@ module Oniwabandana
       # replace old space at end with char and add a new one after it
       $curbuf.line = $curbuf.line[0..-2] + char + ' '
       move_cursor 1
-      update_matches
+      update_matches true
     end
 
     # called after changes to @criteria to update matches
-    def update_matches
+    def update_matches restriction
       p @criteria
-      @matches.each { |match| match.calculate_score! @criteria }
+      @matches.each { |match| match.calculate_score! @criteria, restriction }
       @matches.select! &:matching?
       @matches.sort!
       show_matches
@@ -173,8 +173,7 @@ module Oniwabandana
           @criteria.pop
           @finished_criteria = true
         end
-        # todo: update matches based on new criteria
-        update_matches
+        update_matches false
       end
     end
 
