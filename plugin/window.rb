@@ -2,54 +2,50 @@ require 'match'
 
 module Oniwabandana
   class Window
-    GLOBAL_ONLY_OPTS = { 'hlsearch' => true, 'scrolloff' => true, 'omnifunc' => true  }
+    GLOBAL_ONLY_OPTS = {
+      'hlsearch' => true, 'scrolloff' => true, 'omnifunc' => true
+    }
     SELECTED_PREFIX = '> '
+    REJECTED_PREFIX = ' ' * SELECTED_PREFIX.size
 
     def initialize opts
       @opts = opts
       @max_options = @opts.height - 1
       @selected_idx = 0 # of window entry from top
       @files = nil # all potential files
-      @matches = nil # files matching current search paramters
+      @matched = nil # files matching current search parameters
+      @rejected = nil # files not matching current search parameters
       @offset = 0 # current offset from first match
       @cursor_pos = 0 # cursor offset from left hand side
+      @window = nil #
       @criteria = []
       # true at beginning or if space was previous key pressed
       @finished_criteria = true
     end
 
-    def show_matches
-      if @matches.size < $curbuf.count
-        VIM::command("silent! resize #{@matches.size + 1}")
-      end
-      # todo: handle window size increase on relaxed match (after backspace)
-
-      # avoid copying the matches array in ruby 2.0+
-      matches = @matches.respond_to?(:lazy) ? @matches.lazy : @matches
-      matches.drop(@offset).take(@max_options).each_with_index do |match, idx|
-        prefix = idx == @selected_idx ? '> ' : '  '
-        $curbuf[idx + 2] = prefix + match.filename
-      end
-    end
-
     def select offset
       new_sel_idx = @selected_idx + offset
       if new_sel_idx < 0
-        scroll new_sel_idx
         @selected_idx = 0
-      elsif new_sel_idx >= @max_options
-        scroll(new_sel_idx - @max_options + 1)
-        @selected_idx = @max_options - 1
+        scroll new_sel_idx
+      elsif new_sel_idx >= scroll_height
+        @selected_idx = scroll_height - 1
+        scroll(new_sel_idx - scroll_height + 1)
       else
-        $curbuf[@selected_idx + 2] = '  ' + $curbuf[@selected_idx + 2][2..-1]
-        $curbuf[new_sel_idx + 2] = '> ' + $curbuf[new_sel_idx + 2][2..-1]
+        old_sel_idx = @selected_idx
         @selected_idx = new_sel_idx
+        show_match @selected_idx
+        show_match old_sel_idx
       end
+    end
+
+    def scroll_height
+      @window.height - 1
     end
 
     def scroll offset
       new_offset = @offset + offset
-      return if new_offset < 0 or new_offset > (@matches.length - @max_options)
+      return if new_offset < 0 or new_offset > (@matched.length - @max_options)
       @offset = new_offset
       show_matches
     end
@@ -65,7 +61,8 @@ module Oniwabandana
 
     def show files
       @files = files
-      @matches = @files.map { |file| Match.new file }
+      @matched = @files.map { |file| Match.new file }
+      @rejected = []
 
       if @has_buffer
         VIM::command("silent! #{@opts.height} split SearchFiles")
@@ -82,15 +79,35 @@ module Oniwabandana
         set 'nobuflisted'
         set 'textwidth=0'
         set 'scrolloff=0'
-        @has_buffer = true
+        set 'nowrap'
+        @window = $curwin
 
+        VIM::command "syntax match OniwaSelection \"^>.\\+$\""
+        VIM::command "highlight link OniwaSelection PmenuSel"
+
+        # create empty buffer space
         @max_options.times do
           # create empty lines in the buffer for manipulation later
           $curbuf.append(0, '')
         end
         # the cmd line always has a space at the end so the cursor can be there
         $curbuf.line = ' '
+
+        @has_buffer = true
         false
+      end
+    end
+
+    def accept
+      # p "accept " + get_shown_match.filename
+      VIM::command('call OniwaClose()')
+      VIM::command("edit #{get_shown_match.filename}")
+    end
+
+    def close
+      if @has_buffer
+        VIM::command("silent! q!")
+        @has_buffer = false
       end
     end
 
@@ -108,22 +125,16 @@ module Oniwabandana
         '<Right>' => 'Ignore',
         '<Up>' => 'SelectPrev',
         '<Down>' => 'SelectNext',
-        '<C-c>' => 'Hide',
+        '<C-c>' => 'Close',
         '<C-h>' => 'Backspace',
         '<BS>' => 'Backspace',
         # '<Esc>' => 'Hide' # messes with arrow keys
       }
-      special.each do |key, val|
-        map key, val
-      end
-    end
-
-    def map key, function, param = ''
-      ::VIM::command "noremap <silent> <buffer> #{key} " \
-        ":call Oniwa#{function}(#{param})<CR>"
+      special.each { |key, val| map key, val }
     end
 
     def key_press key
+      @selected_idx = @offset = 0
       char = key.to_i.chr
       if char == ' '
         unless @finished_criteria
@@ -144,21 +155,7 @@ module Oniwabandana
       # replace old space at end with char and add a new one after it
       $curbuf.line = $curbuf.line[0..-2] + char + ' '
       move_cursor 1
-      update_matches true
-    end
-
-    # called after changes to @criteria to update matches
-    def update_matches restriction
-      p @criteria
-      @matches.each { |match| match.calculate_score! @criteria, restriction }
-      @matches.select! &:matching?
-      @matches.sort!
-      show_matches
-    end
-
-    def move_cursor offset
-      @cursor_pos += offset
-      $curwin.cursor = [ 0, @cursor_pos ]
+      restrict_match_criteria
     end
 
     def backspace
@@ -173,16 +170,58 @@ module Oniwabandana
           @criteria.pop
           @finished_criteria = true
         end
-        update_matches false
+        relax_match_criteria
       end
     end
 
-    def accept
-      p "accept"
+    def show_matches
+      # avoid copying the matched array in ruby 2.0+
+      matched = @matched.respond_to?(:lazy) ? @matched.lazy : @matched
+      matched.drop(@offset).take(@max_options).each_with_index do |match, idx|
+        show_match idx, match
+      end
     end
 
-    def hide
-      VIM::command("silent! hide") if @has_buffer
+    private
+    def map key, function, param = ''
+      VIM::command "noremap <silent> <buffer> #{key} " \
+        ":call Oniwa#{function}(#{param})<CR>"
+    end
+
+    # called after changes to @criteria to update matched
+    def restrict_match_criteria
+      p @criteria
+      @matched.each { |match| match.increase_score! @criteria }
+      @matched.select! &:matching?
+      @matched.sort!
+      if @matched.size < $curbuf.count
+        VIM::command("silent! resize #{@matched.size + 1}")
+      end
+      show_matches
+    end
+
+    def relax_match_criteria
+      p @criteria
+      # todo: apply relaxation to @matched
+      # todo: handle window size increase on relaxed match (after backspace)
+    end
+
+    def get_shown_match(idx_from_top = @selected_idx)
+      @matched[@offset + idx_from_top]
+    end
+
+    def show_match idx, match = nil
+      match ||= get_shown_match idx
+      if idx == @selected_idx
+        $curbuf[idx + 2] = SELECTED_PREFIX + match.filename + ' ' * @window.width
+      else
+        $curbuf[idx + 2] = REJECTED_PREFIX + match.filename
+      end
+    end
+
+    def move_cursor offset
+      @cursor_pos += offset
+      $curwin.cursor = [ 0, @cursor_pos ]
     end
   end
 end

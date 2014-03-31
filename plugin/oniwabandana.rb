@@ -4,7 +4,7 @@ module Oniwabandana
   class Opts
     attr_reader :height
     def initialize
-      @height = 10
+      @height = VIM::evaluate('OniwaSetting("height", 10)')
     end
   end
 
@@ -17,6 +17,11 @@ module Oniwabandana
 
     def window
       @window ||= Window.new @opts
+    end
+
+    def close
+      @window.close
+      @window = nil
     end
 
     def search dir

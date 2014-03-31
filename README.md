@@ -1,8 +1,8 @@
 # Oniwabandana
 
-Oniwabandana doesn't work yet.
+Oniwabandana doesn't yet score files that well or support the backspace key, configurable keys or a key for opening the selected file in a new match.
 
-It is a vim plugin for finding files. It brings up a list of all the files in your current directory or source tree and then you can type words to filter what is shown. If you hit space then the next word becomes another filter (or you can hit two spaces to use an actual space). It tries to show the files in a smart order. When you've found the right file you can hit enter to open it, ctrl-T to open it in a new tab or ctrl-C to close the completion list (the keys are configurable).
+Oniwabandana is a vim plugin for finding files. It brings up a list of all the files in your current directory or source tree and then you can type words to filter what is shown. If you hit space then the next word becomes another filter (or you can hit two spaces to use an actual space). It tries to show the files in a smart order. When you've found the right file you can hit enter to open it, ctrl-T to open it in a new tab or ctrl-C to close the completion list (the keys are configurable).
 
 It doesn't need any C compilation step but it needs vim to be built with ruby support (vim --version | grep '+ruby').
 
@@ -10,7 +10,12 @@ Type :Oniwabandana (or :On&lt;tab&gt; :P).
 
 ## Configuration
 
-This would make it easier to use:
+```
+" Maximum height of file selection box.
+let g:oniwa_height=10
+```
+
+This would make Oniwabandana easier to use:
 ```
 :map <leader>o :Oniwabandana<CR>
 ```
