@@ -1,7 +1,7 @@
 require_relative '../match'
 
 module Oniwabandana
-  describe 'match' do
+  describe 'Match' do
     it 'with update to single criterion in middle' do
       m = Match.new 'thefile'
       m.increase_score! ['f']
@@ -65,6 +65,24 @@ module Oniwabandana
       expect(m.score).to eq(80)
       m.increase_score! ['di', 'fi']
       expect(m.score).to eq(120)
+    end
+
+    it 'ensures second criterion must be after first' do
+      m = Match.new 'abc_def_ghi'
+      m.increase_score! ['d']
+      m.increase_score! ['de']
+      expect(m.score).to eq(80)
+      m.increase_score! ['de', 'a']
+      expect(m.score).to eq(-1)
+    end
+
+    it 'when second criterion is subset of firsta match must be after the first criterion match' do
+      m = Match.new 'den_bon'
+      m.increase_score! ['d']
+      m.increase_score! ['de']
+      expect(m.score).to eq(80)
+      m.increase_score! ['de', 'd']
+      expect(m.score).to eq(-1)
     end
   end
 end

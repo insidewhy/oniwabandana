@@ -18,7 +18,7 @@ module Oniwabandana
     def increase_score! criteria
       if criteria.last.size == 1
         # the last criterion is new
-        offset = @matches.empty? ? 0 : @matches.last.idx
+        offset = @matches.empty? ? 0 : @matches.last.idx + 1
         idx = @filename.index criteria.last, offset
         if idx.nil?
           @score = -1
@@ -31,7 +31,7 @@ module Oniwabandana
         end
       else
         # the last criterion was updated
-        offset = @matches.size > 1 ? @matches[-2].idx : 0
+        offset = @matches.size > 1 ? @matches[-2].idx + 1 : 0
         idx = @filename.index criteria.last, offset
         if idx.nil?
           @score = -1
