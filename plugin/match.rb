@@ -1,5 +1,5 @@
 module Oniwabandana
-  CriterionMatch = Struct.new :score, :idx
+  CriterionMatch = Struct.new :score, :idx, :multiplier
 
   class Match
     attr_reader :filename, :score
@@ -22,8 +22,10 @@ module Oniwabandana
         if idx.nil?
           @score = -1
         else
-          @score += 10
-          @matches << CriterionMatch.new(10, idx)
+          multiplier = 1
+          multiplier = 2 if idx == 0 || '_/ '.index(@filename[idx - 1])
+          @score += multiplier * 10
+          @matches << CriterionMatch.new(multiplier * 10, idx, multiplier)
         end
       else
         # the last criterion was updated
@@ -33,9 +35,10 @@ module Oniwabandana
         if idx.nil?
           @score = -1
         else
-          @score += 10
-          @matches[-1].idx = idx
-          @matches[-1].score += 10
+          last_match = @matches.last
+          @score += 10 * last_match.multiplier
+          last_match.idx = idx
+          last_match.score += 10 * last_match.multiplier
         end
       end
     end
