@@ -18,7 +18,7 @@ module Oniwabandana
       if criteria.last.size == 1
         # the last criterion is new
         offset = @matches.empty? ? 0 : @matches.last.idx
-        idx = @filename.index criteria.first, offset
+        idx = @filename.index criteria.last, offset
         if idx.nil?
           @score = -1
         else
@@ -30,7 +30,6 @@ module Oniwabandana
       else
         # the last criterion was updated
         offset = @matches.size > 1 ? @matches[-2].idx : 0
-
         idx = @filename.index criteria.last, offset
         if idx.nil?
           @score = -1
