@@ -63,12 +63,13 @@ module Oniwabandana
       @files = files
       @matched = @files.map { |file| Match.new file }
       @rejected = []
+      @max_options = [ @matched.size, @max_options ].min
 
       if @has_buffer
-        VIM::command("silent! #{@opts.height} split SearchFiles")
+        VIM::command("silent! #{@max_options + 1} split SearchFiles")
         true
       else
-        VIM::command("silent! #{@opts.height} new SearchFiles")
+        VIM::command("silent! #{@max_options + 1} new SearchFiles")
         set 'nohlsearch'
         set 'noinsertmode'
         set 'buftype=nofile'
