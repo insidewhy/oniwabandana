@@ -105,6 +105,11 @@ module Oniwabandana
       VIM::command("edit #{get_shown_match.filename}")
     end
 
+    def accept_in_new_tab
+      VIM::command('call OniwaClose()')
+      VIM::command("tabe #{get_shown_match.filename}")
+    end
+
     def close
       if @has_buffer
         VIM::command("silent! q!")
@@ -122,6 +127,7 @@ module Oniwabandana
       end
       special = {
         '<CR>' => 'Accept',
+        '<C-t>' => 'AcceptInNewTab',
         '<Left>' => 'Ignore',
         '<Right>' => 'Ignore',
         '<Up>' => 'SelectPrev',
@@ -193,7 +199,14 @@ module Oniwabandana
     def restrict_match_criteria
       # p @criteria
       @matched.each { |match| match.increase_score! @criteria }
-      @matched.select! &:matching?
+      @matched.select! do |match|
+        if match.matching?
+          true
+        else
+          @rejected << match
+          false
+        end
+      end
       @matched.sort!
       if @matched.size < $curbuf.count
         VIM::command("silent! resize #{@matched.size + 1}")
