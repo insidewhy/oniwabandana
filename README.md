@@ -10,9 +10,13 @@ Type :Oniwabandana (or :On&lt;tab&gt; :P).
 
 ## Configuration
 
+The defaults are shown:
 ```
 " Maximum height of file selection box.
 let g:oniwa_height=10
+
+" Perform case-insensitive matching.
+let g:oniwa_case_sensitive=0
 ```
 
 This would make Oniwabandana easier to use:

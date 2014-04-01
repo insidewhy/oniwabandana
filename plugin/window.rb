@@ -61,7 +61,7 @@ module Oniwabandana
 
     def show files
       @files = files
-      @matched = @files.map { |file| Match.new file }
+      @matched = @files.map { |file| Match.new file, @opts }
       @rejected = []
       @max_options = [ @matched.size, @max_options ].min
 
@@ -191,7 +191,7 @@ module Oniwabandana
 
     # called after changes to @criteria to update matched
     def restrict_match_criteria
-      p @criteria
+      # p @criteria
       @matched.each { |match| match.increase_score! @criteria }
       @matched.select! &:matching?
       @matched.sort!
@@ -202,7 +202,7 @@ module Oniwabandana
     end
 
     def relax_match_criteria
-      p @criteria
+      # p @criteria
       # todo: apply relaxation to @matched
       # todo: handle window size increase on relaxed match (after backspace)
     end

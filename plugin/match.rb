@@ -5,8 +5,9 @@ module Oniwabandana
   class Match
     attr_reader :filename, :score, :matches
 
-    def initialize filename
+    def initialize filename, opts
       @filename = filename
+      @matchname = opts.case_sensitive ? filename : filename.downcase
       @file_idx = filename.rindex('/') || 0
       @score = 0
       # match info one per criterion
@@ -21,14 +22,14 @@ module Oniwabandana
       if crit_size == 1
         # the last criterion is new
         offset = @matches.empty? ? 0 : @matches.last.indexes.first.index + 1
-        idx = @filename.index criteria.last, offset
+        idx = @matchname.index criteria.last, offset
         if idx.nil?
           @score = -1
         else
           multiplier = 1
           calc_multiplier = proc do
             multiplier = 1
-            multiplier *= 2 if idx == 0 || '._/ '.index(@filename[idx - 1])
+            multiplier *= 2 if idx == 0 || '._/ '.index(@matchname[idx - 1])
             multiplier *= 2 if idx >= @file_idx
           end
           calc_multiplier.call
@@ -37,7 +38,7 @@ module Oniwabandana
           @matches << match
           # search for the criterion multiple times
           while true
-            idx = @filename.index criteria.last, idx + 1
+            idx = @matchname.index criteria.last, idx + 1
             # todo: recalculate multiplier
             break if idx.nil?
             calc_multiplier.call
@@ -65,7 +66,7 @@ module Oniwabandana
             match.score += idx.multiplier * crit_size
             false
           else
-            index = @filename.index criteria.last, idx.index
+            index = @matchname.index criteria.last, idx.index
             if index.nil?
               true
             else
