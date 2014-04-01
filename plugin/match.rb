@@ -22,31 +22,14 @@ module Oniwabandana
     end
 
     # Update @score after criteria has been extended.
+    # Pre: @score != -1
     # Params:
     # +criteria+:: Array of strings to apply as criteria.
     def increase_score! criteria
       crit_size = criteria.last.size
       if crit_size == 1
-        # the last criterion is new
-        offset = @matches.empty? ? 0 : @matches.last.indexes.first.index + 1
-        idx = @matchname.index criteria.last, offset
-        if idx.nil?
-          @score = -1
-        else
-          multiplier = calculate_multiplier idx
-          match = CriterionMatch.new(multiplier, [CriterionIndex.new(idx, multiplier)])
-          @matches << match
-          # search for the criterion multiple times
-          while true
-            idx = @matchname.index criteria.last, idx + 1
-            break if idx.nil?
-            multiplier = calculate_multiplier idx
-            match.indexes << CriterionIndex.new(idx, multiplier)
-            match.score += multiplier
-          end
-
-          @score += match.score
-        end
+        rescore_criterion(criteria, criteria.size - 1)
+        @score = -1 if @matches.last.score == 0
       else
         # the last criterion was updated
         match = @matches.last
@@ -93,6 +76,7 @@ module Oniwabandana
     end
 
     # Update @score after criteria has been reduced.
+    # Pre: @score != -1
     # Params:
     # +criteria+:: Array of strings to apply as criteria.
     def decrease_score! criteria
@@ -100,24 +84,8 @@ module Oniwabandana
         # lost criterion from the end
         @score -= @matches.pop.score
       else
-        criterion = criteria.last
-
-        # recalculate final criterion's score
-        match = @matches.last
-        match.indexes = []
-        @score -= match.score
-        match.score = 0
-
-        # by searching for the criterion again
-        idx = @matches.size > 1 ? @matches[-2].indexes.first.index + 1 : -1
-        while true
-          idx = @matchname.index criterion, idx + 1
-          break if idx.nil?
-          multiplier = calculate_multiplier idx
-          match.indexes << CriterionIndex.new(idx, multiplier)
-          match.score += multiplier * criterion.size
-        end
-        @score += match.score
+        # final criterion was modified so recalculate it
+        rescore_criterion(criteria, criteria.size - 1)
       end
     end
 
@@ -126,6 +94,29 @@ module Oniwabandana
     # +criteria+:: Array of strings to apply as criteria.
     def calculate_score! criteria
       # todo:
+    end
+
+    def rescore_criterion criteria, crit_idx
+      criterion = criteria[crit_idx]
+      match = @matches[crit_idx]
+      if match.nil?
+        match = @matches[crit_idx] = CriterionMatch.new 0, []
+      else
+        match.indexes = []
+        @score -= match.score
+        match.score = 0
+      end
+
+      # by searching for the criterion again
+      idx = crit_idx > 0 ? @matches[crit_idx - 1].indexes.first.index + 1 : -1
+      while true
+        idx = @matchname.index criterion, idx + 1
+        break if idx.nil?
+        multiplier = calculate_multiplier idx
+        match.indexes << CriterionIndex.new(idx, multiplier)
+        match.score += multiplier * criterion.size
+      end
+      @score += match.score
     end
 
     # reverse order as higher score should be ranked first
