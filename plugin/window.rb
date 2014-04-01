@@ -10,7 +10,7 @@ module Oniwabandana
 
     def initialize opts
       @opts = opts
-      @max_options = @opts.height - 1
+      @n_matches_shown = @opts.height - 1
       @selected_idx = 0 # of window entry from top
       @files = nil # all potential files
       @matched = nil # files matching current search parameters
@@ -45,7 +45,7 @@ module Oniwabandana
 
     def scroll offset
       new_offset = @offset + offset
-      return if new_offset < 0 or new_offset > (@matched.length - @max_options)
+      return if new_offset < 0 or new_offset > (@matched.length - @n_matches_shown)
       @offset = new_offset
       show_matches
     end
@@ -63,13 +63,13 @@ module Oniwabandana
       @files = files
       @matched = @files.map { |file| Match.new file, @opts }
       @rejected = []
-      @max_options = [ @matched.size, @max_options ].min
+      @n_matches_shown = [ @matched.size, @n_matches_shown ].min
 
       if @has_buffer
-        VIM::command("silent! #{@max_options + 1} split SearchFiles")
+        VIM::command("silent! #{@n_matches_shown + 1} split SearchFiles")
         true
       else
-        VIM::command("silent! #{@max_options + 1} new SearchFiles")
+        VIM::command("silent! #{@n_matches_shown + 1} new SearchFiles")
         set 'nohlsearch'
         set 'noinsertmode'
         set 'buftype=nofile'
@@ -87,7 +87,7 @@ module Oniwabandana
         VIM::command "highlight link OniwaSelection PmenuSel"
 
         # create empty buffer space
-        @max_options.times do
+        @n_matches_shown.times do
           # create empty lines in the buffer for manipulation later
           $curbuf.append(0, '')
         end
@@ -184,12 +184,19 @@ module Oniwabandana
     def show_matches
       # avoid copying the matched array in ruby 2.0+
       matched = @matched.respond_to?(:lazy) ? @matched.lazy : @matched
-      matched.drop(@offset).take(@max_options).each_with_index do |match, idx|
+      matched.drop(@offset).take(@n_matches_shown).each_with_index do |match, idx|
         show_match idx, match
       end
     end
 
     private
+    def recalculate_window_height
+      @n_matches_shown = [ @matched.size, @opts.height - 1 ].min
+      if @n_matches_shown != $curbuf.count
+        VIM::command("silent! resize #{@n_matches_shown + 1}")
+      end
+    end
+
     def map key, function, param = ''
       VIM::command "noremap <silent> <buffer> #{key} " \
         ":call Oniwa#{function}(#{param})<CR>"
@@ -208,16 +215,17 @@ module Oniwabandana
         end
       end
       @matched.sort!
-      if @matched.size < $curbuf.count
-        VIM::command("silent! resize #{@matched.size + 1}")
-      end
       show_matches
+      recalculate_window_height
     end
 
     def relax_match_criteria
       # p @criteria
-      # todo: apply relaxation to @matched
-      # todo: handle window size increase on relaxed match (after backspace)
+      @matched.each { |match| match.decrease_score! @criteria }
+      # todo: recalculate scores of rejected, possibly promoting them to matched
+      @matched.sort!
+      show_matches
+      recalculate_window_height
     end
 
     def get_shown_match(idx_from_top = @selected_idx)

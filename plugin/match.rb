@@ -14,6 +14,13 @@ module Oniwabandana
       @matches = []
     end
 
+    def calculate_multiplier idx
+      multiplier = 1
+      multiplier *= 2 if idx == 0 || '._/ '.index(@matchname[idx - 1])
+      multiplier *= 2 if idx >= @file_idx
+      multiplier
+    end
+
     # Update @score after criteria has been extended.
     # Params:
     # +criteria+:: Array of strings to apply as criteria.
@@ -26,22 +33,14 @@ module Oniwabandana
         if idx.nil?
           @score = -1
         else
-          multiplier = 1
-          calc_multiplier = proc do
-            multiplier = 1
-            multiplier *= 2 if idx == 0 || '._/ '.index(@matchname[idx - 1])
-            multiplier *= 2 if idx >= @file_idx
-          end
-          calc_multiplier.call
-
+          multiplier = calculate_multiplier idx
           match = CriterionMatch.new(multiplier, [CriterionIndex.new(idx, multiplier)])
           @matches << match
           # search for the criterion multiple times
           while true
             idx = @matchname.index criteria.last, idx + 1
-            # todo: recalculate multiplier
             break if idx.nil?
-            calc_multiplier.call
+            multiplier = calculate_multiplier idx
             match.indexes << CriterionIndex.new(idx, multiplier)
             match.score += multiplier
           end
@@ -91,6 +90,42 @@ module Oniwabandana
           @score += match.score
         end
       end
+    end
+
+    # Update @score after criteria has been reduced.
+    # Params:
+    # +criteria+:: Array of strings to apply as criteria.
+    def decrease_score! criteria
+      if @matches.size > criteria.size
+        # lost criterion from the end
+        @score -= @matches.pop.score
+      else
+        criterion = criteria.last
+
+        # recalculate final criterion's score
+        match = @matches.last
+        match.indexes = []
+        @score -= match.score
+        match.score = 0
+
+        # by searching for the criterion again
+        idx = @matches.size > 1 ? @matches[-2].indexes.first.index + 1 : -1
+        while true
+          idx = @matchname.index criterion, idx + 1
+          break if idx.nil?
+          multiplier = calculate_multiplier idx
+          match.indexes << CriterionIndex.new(idx, multiplier)
+          match.score += multiplier * criterion.size
+        end
+        @score += match.score
+      end
+    end
+
+    # Recalculate @score from criteria.
+    # Params:
+    # +criteria+:: Array of strings to apply as criteria.
+    def calculate_score! criteria
+      # todo:
     end
 
     # reverse order as higher score should be ranked first
