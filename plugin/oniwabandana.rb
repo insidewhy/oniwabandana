@@ -4,12 +4,18 @@ module Oniwabandana
   class Opts
     attr_reader :height, :case_sensitive, :backspace, :open, :tabopen, :close
     def initialize
-      @height = VIM::evaluate('OniwaSetting("height", 10)')
-      @case_sensitive = VIM::evaluate('OniwaSetting("case_sensitive", 0)') != 0
-      @backspace = VIM::evaluate('OniwaSetting("backspace", "<c-h>")')
-      @tabopen = VIM::evaluate('OniwaSetting("tabopen", "<c-t>")')
-      @open = VIM::evaluate('OniwaSetting("open", "<cr>")')
-      @close = VIM::evaluate('OniwaSetting("close", "<c-c>")')
+      @height = key_setting 'height', 10
+      @case_sensitive = key_setting('case_sensitive', 0) != 0
+      @backspace = key_setting 'backspace', '<c-h>'
+      @tabopen = key_setting 'tabopen', '<c-t>'
+      @open = key_setting 'open', '<cr>'
+      @close = key_setting 'close', '<c-c>'
+    end
+
+    private
+    def key_setting name, default
+      default = "\"#{default}\"" if default.kind_of? String
+      VIM::evaluate("OniwaSetting(\"#{name}\", #{default})")
     end
   end
 
