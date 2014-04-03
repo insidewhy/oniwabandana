@@ -7,7 +7,6 @@ It doesn't need any C compilation step but it needs vim to be built with ruby su
 Type :Oniwabandana (or :On&lt;tab&gt; :P).
 
 ## TODO
-* Allow keys to be configured.
 * Highlight matching strings in matches window.
 * Allow configurable file sources (currently uses git ls-files which gets files in git index recursively from current directory)
 
@@ -20,6 +19,12 @@ let g:oniwa_height=10
 
 " Perform case-insensitive matching.
 let g:oniwa_case_sensitive=0
+
+" Keys bindings when match window is open.
+let g:oniwa_tabopen="<c-t>"
+let g:oniwa_open="<cr>"
+let g:oniwa_backspace="<c-h>"  " in addition to backspace key
+let g:oniwa_close="<c-c>"
 ```
 
 This would make Oniwabandana easier to use:

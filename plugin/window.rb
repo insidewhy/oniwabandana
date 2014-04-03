@@ -126,14 +126,14 @@ module Oniwabandana
         map "<Char-#{b}>", 'HandleKey', b
       end
       special = {
-        '<CR>' => 'Accept',
-        '<C-t>' => 'AcceptInNewTab',
+        @opts.open => 'Accept',
+        @opts.tabopen => 'AcceptInNewTab',
         '<Left>' => 'Ignore',
         '<Right>' => 'Ignore',
         '<Up>' => 'SelectPrev',
         '<Down>' => 'SelectNext',
-        '<C-c>' => 'Close',
-        '<C-h>' => 'Backspace',
+        @opts.close => 'Close',
+        @opts.backspace => 'Backspace',
         '<BS>' => 'Backspace',
         # '<Esc>' => 'Hide' # messes with arrow keys
       }
