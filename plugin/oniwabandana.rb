@@ -37,7 +37,17 @@ module Oniwabandana
 
     def search dir
       dir ||= '.'
+      # todo: determine source from @opts
       files = `git ls-files`.split "\n"
+      wildignore = VIM::evaluate('&wildignore').split(',').map do |igpat|
+        Regexp.new('^' + Regexp.escape(igpat).gsub('\*','.*?') + '$')
+      end
+
+      # filter by wildignore
+      files.reject! do |file|
+        wildignore.detect { |pattern| file.match pattern }
+      end
+
       win = window
       unless win.show files
         win.show_matches

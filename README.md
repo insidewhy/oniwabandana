@@ -25,6 +25,9 @@ let g:oniwa_tabopen="<c-t>"
 let g:oniwa_open="<cr>"
 let g:oniwa_backspace="<c-h>"  " in addition to backspace key
 let g:oniwa_close="<c-c>"
+
+" This is a vim setting that Oniwabandana uses to filter matches.
+set wildignore="*.png,*.gif"
 ```
 
 This would make Oniwabandana easier to use:
