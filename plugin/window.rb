@@ -226,17 +226,15 @@ module Oniwabandana
         @matched = @files.map { |file| Match.new file, @opts }
       else
         @matched.each { |match| match.decrease_score! @criteria }
-        @rejected.select do |match|
+        @rejected.reject! do |match|
           match.calculate_score! @criteria
-          if match.score == -1
-            false
-          else
+          if match.score != -1
             @matched << match
             true
           end
         end
+        @matched.sort!
       end
-      @matched.sort!
       show_matches
       recalculate_window_height
     end
