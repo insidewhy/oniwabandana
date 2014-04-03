@@ -9,6 +9,7 @@ Type :Oniwabandana (or :On&lt;tab&gt; :P).
 ## TODO
 * Highlight matching strings in matches window.
 * Allow configurable file sources (currently uses git ls-files which gets files in git index recursively from current directory)
+* Add option for switching to the tab of the selected file if it is already open in a tab.
 
 ## Configuration
 
