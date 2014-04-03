@@ -128,7 +128,8 @@ module Oniwabandana
 
     # reverse order as higher score should be ranked first
     def <=> rhs
-      rhs.score <=> @score
+      ret = rhs.score <=> @score
+      ret == 0 ? (@filename <=> rhs.filename) : ret
     end
 
     def matching?
