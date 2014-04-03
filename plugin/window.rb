@@ -110,6 +110,15 @@ module Oniwabandana
       VIM::command("tabe #{get_shown_match.filename}")
     end
 
+    def accept_smart
+      VIM::command('call OniwaClose()')
+      if $curbuf.name.nil? and VIM::evaluate('&modified') == 0
+        VIM::command("edit #{get_shown_match.filename}")
+      else
+        VIM::command("tabe #{get_shown_match.filename}")
+      end
+    end
+
     def close
       if @has_buffer
         VIM::command("silent! q!")
@@ -127,6 +136,7 @@ module Oniwabandana
       end
       special = {
         @opts.open => 'Accept',
+        @opts.open_smart => 'AcceptSmart',
         @opts.tabopen => 'AcceptInNewTab',
         '<Left>' => 'Ignore',
         '<Right>' => 'Ignore',

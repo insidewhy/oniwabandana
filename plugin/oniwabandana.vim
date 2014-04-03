@@ -19,6 +19,10 @@ function OniwaAcceptInNewTab()
   ruby $oniwapp.window.accept_in_new_tab
 endfunction
 
+function OniwaAcceptSmart()
+  ruby $oniwapp.window.accept_smart
+endfunction
+
 function OniwaClose()
   ruby $oniwapp.close
 endfunction
