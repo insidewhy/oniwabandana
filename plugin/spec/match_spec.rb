@@ -188,5 +188,15 @@ module Oniwabandana
       m.increase_score! ['app', 'con'] # 18 + (3 * 2) + (3 * 4)
       expect(m.score).to eq(36)
     end
+
+    it 'score with calculate_score! unaffected by prior increase_score!' do
+      m = Match.new 'config/initializers/filter_parameter_logging.rb', @opts
+      m.increase_score! ['g']
+      expect(m.score).to eq(7)
+      m.increase_score! ['ge']
+      expect(m.score).to eq(-1)
+      m.calculate_score! ['g']
+      expect(m.score).to eq(7)
+    end
   end
 end

@@ -93,6 +93,8 @@ module Oniwabandana
     # Params:
     # +criteria+:: Array of strings to apply as criteria.
     def calculate_score! criteria
+      @score = 0
+      @matches = []
       failure = (0 ... criteria.length).detect do |idx|
         rescore_criterion criteria, idx
         @matches[idx].score == 0
@@ -108,7 +110,7 @@ module Oniwabandana
         match = @matches[crit_idx] = CriterionMatch.new 0, []
       else
         match.indexes = []
-        @score -= match.score
+        @score -= match.score unless match.score == -1
         match.score = 0
       end
 
