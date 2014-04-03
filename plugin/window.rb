@@ -221,8 +221,21 @@ module Oniwabandana
 
     def relax_match_criteria
       # p @criteria
-      @matched.each { |match| match.decrease_score! @criteria }
-      # todo: recalculate scores of rejected, possibly promoting them to matched
+      if @criteria.size == 0
+        @rejected = []
+        @matched = @files.map { |file| Match.new file, @opts }
+      else
+        @matched.each { |match| match.decrease_score! @criteria }
+        @rejected.select do |match|
+          match.calculate_score! @criteria
+          if match.score == -1
+            false
+          else
+            @matched << match
+            true
+          end
+        end
+      end
       @matched.sort!
       show_matches
       recalculate_window_height

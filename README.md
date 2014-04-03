@@ -7,8 +7,9 @@ It doesn't need any C compilation step but it needs vim to be built with ruby su
 Type :Oniwabandana (or :On&lt;tab&gt; :P).
 
 ## TODO
-* Support backspace!
 * Allow keys to be configured.
+* Highlight matching strings in matches window.
+* Allow configurable file sources (currently uses git ls-files which gets files in git index recursively from current directory)
 
 ## Configuration
 
