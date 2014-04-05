@@ -16,7 +16,10 @@ module Oniwabandana
 
     def calculate_multiplier idx
       multiplier = 1
-      multiplier *= 2 if idx == 0 || '._/ '.index(@matchname[idx - 1])
+      if idx == 0 || '._/ '.index(@matchname[idx - 1]) ||
+      (is_upper?(@filename[idx]) && is_lower?(@filename[idx - 1]))
+        multiplier *= 2
+      end
       multiplier *= 2 if idx >= @file_idx
       multiplier
     end
@@ -102,6 +105,17 @@ module Oniwabandana
       @score = -1 unless failure.nil?
     end
 
+    # reverse order as higher score should be ranked first
+    def <=> rhs
+      ret = rhs.score <=> @score
+      ret == 0 ? (@filename <=> rhs.filename) : ret
+    end
+
+    def matching?
+      @score >= 0
+    end
+
+    private
     # Rescore an existing criteria's match (or score it if it is a new match).
     def rescore_criterion criteria, crit_idx
       criterion = criteria[crit_idx]
@@ -126,14 +140,14 @@ module Oniwabandana
       @score += match.score
     end
 
-    # reverse order as higher score should be ranked first
-    def <=> rhs
-      ret = rhs.score <=> @score
-      ret == 0 ? (@filename <=> rhs.filename) : ret
+    def is_lower? chr
+      @@lower_test ||= /[[:lower:]]/
+      chr.match @@lower_test
     end
 
-    def matching?
-      @score >= 0
+    def is_upper? chr
+      @@upper_test ||= /[[:upper:]]/
+      chr.match @@upper_test
     end
   end
 end

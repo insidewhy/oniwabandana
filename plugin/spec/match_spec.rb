@@ -36,6 +36,14 @@ module Oniwabandana
       expect(m.score).to eq(8)
     end
 
+    it 'capital after lowercase with multiplier' do
+      m = Match.new 'TheFile', @opts
+      m.increase_score! ['f']
+      expect(m.score).to eq(4)
+      m.increase_score! ['fi']
+      expect(m.score).to eq(8)
+    end
+
     it 'failing second criterion' do
       m = Match.new 'thefile', @opts
       m.increase_score! ['t']
