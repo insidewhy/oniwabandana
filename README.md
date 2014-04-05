@@ -24,11 +24,11 @@ let g:oniwa_case_sensitive=0
 " Keys bindings when match window is open.
 let g:oniwa_tabopen="<c-t>"
 let g:oniwa_open="<cr>"
-" If the current buffer is unmodified and unnamed then replace it, otherwise
-" open a new tab
-let g:oniwa_open_smart="<c-o>"
+" tabopen uses current window rather than opening tab if it is nameless and empty
+let g:oniwa_smart_tabopen=1
 let g:oniwa_backspace="<c-h>"  " in addition to backspace key
 let g:oniwa_close="<c-c>"
+let g:oniwa_tabopen_cmd="tabe"  " try "tab drop" to switch to existing open tab
 
 " This is a vim setting that Oniwabandana uses to filter matches.
 set wildignore="*.png,*.gif"
