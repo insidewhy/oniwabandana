@@ -49,3 +49,11 @@ You could install it with [pathogen](https://github.com/tpope/vim-pathogen) or [
 
 ## Dependencies
  * [GlobalOptions](http://www.vim.org/scripts/script.php?script\_id=4414)
+
+## Suggested plugins
+
+* [TabDrop](https://github.com/nuisanceofcats/tabdrop).
+```
+" can use this or TabDrop to give you "tab drop" in terminal vim.
+let g:oniwa_tabopen_cmd="TabDropHere"
+```
