@@ -3,7 +3,7 @@ require 'window'
 module Oniwabandana
   class Opts
     attr_reader :height, :case_sensitive, :backspace, :open, :close,
-                :tabopen, :tabopen_cmd, :smart_tabopen
+                :tabopen, :tabopen_cmd, :smart_tabopen, :select_prev, :select_next
     def initialize
       @height = key_setting 'height', 10
       @case_sensitive = key_setting('case_sensitive', 0) != 0
@@ -13,6 +13,8 @@ module Oniwabandana
       @close = key_setting 'close', '<c-c>'
       @smart_tabopen = key_setting('smart_tabopen', '0') != 0
       @tabopen_cmd = key_setting 'tabopen_cmd', 'tabe'
+      @select_prev = key_setting 'select_prev', '<Up>'
+      @select_next = key_setting 'select_next', '<Down>'
     end
 
     private
