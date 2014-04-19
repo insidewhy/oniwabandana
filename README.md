@@ -25,7 +25,7 @@ let g:oniwa_case_sensitive=0
 let g:oniwa_tabopen="<c-t>"
 let g:oniwa_open="<cr>"
 " tabopen uses current window rather than opening tab if it is nameless and empty
-let g:oniwa_smart_tabopen=1
+let g:oniwa_smart_tabopen=0
 let g:oniwa_backspace="<c-h>"  " in addition to backspace key
 let g:oniwa_close="<c-c>"
 let g:oniwa_tabopen_cmd="tabe"  " try "tab drop" to switch to existing open tab

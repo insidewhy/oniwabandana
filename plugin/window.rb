@@ -107,12 +107,8 @@ module Oniwabandana
 
     def accept_in_new_tab
       VIM::command('call OniwaClose()')
-      if @opts.smart_tabopen
-        if $curbuf.name.nil? and VIM::evaluate('&modified') == 0
-          VIM::command("edit #{get_shown_match.filename}")
-        else
-          VIM::command("#{@opts.tabopen_cmd} #{get_shown_match.filename}")
-        end
+      if @opts.smart_tabopen and $curbuf.name.nil? and VIM::evaluate('&modified') == 0
+        VIM::command("edit #{get_shown_match.filename}")
       else
         VIM::command("#{@opts.tabopen_cmd} #{get_shown_match.filename}")
       end

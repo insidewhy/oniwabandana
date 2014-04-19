@@ -11,7 +11,7 @@ module Oniwabandana
       @tabopen = key_setting 'tabopen', '<c-t>'
       @open = key_setting 'open', '<cr>'
       @close = key_setting 'close', '<c-c>'
-      @smart_tabopen = key_setting 'smart_tabopen', '1'
+      @smart_tabopen = key_setting('smart_tabopen', '0') != 0
       @tabopen_cmd = key_setting 'tabopen_cmd', 'tabe'
     end
 
