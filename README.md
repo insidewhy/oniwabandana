@@ -1,6 +1,8 @@
 # Oniwabandana
 
-Oniwabandana is a vim plugin for finding files. It brings up a list of all the files in your current directory or source tree and then you can type words to filter what is shown. If you hit space then the next word becomes another filter (or you can hit two spaces to use an actual space). It tries to show the files in a smart order. When you've found the right file you can hit enter to open it, Ctrl-T to open it in a new tab or Ctrl-C to close the completion list (the keys are configurable).
+Oniwabandana is a vim plugin for finding files. It brings up a list of all the files in your current directory or source tree and then you can type words to filter what is shown. If you hit space then the next word becomes another filter. It tries to show the files in a smart order, for example matches after underscores or at the beginning of a path are given greater weighting. When the desired file has been found then (with the default configuration) enter will open it, Ctrl-T will open it in a new tab or Ctrl-C to close the completion list.
+
+It also provides a grep mode that can be used to further refine matched files based on their contents.
 
 It doesn't need any C compilation step but it needs vim to be built with ruby support (vim --version | grep '+ruby').
 
@@ -32,6 +34,7 @@ let g:oniwa_tabopen_cmd="tabe"  " try "tab drop" to switch to existing open tab
 let g:oniwa_select_prev="<Up>"
 let g:oniwa_select_next="<Down>"
 let g:oniwa_tabopen_all="<c-e>"
+let g:oniwa_grep="<c-g>"
 
 " This is a vim setting that Oniwabandana uses to filter matches.
 set wildignore="*.png,*.gif"
@@ -40,6 +43,7 @@ set wildignore="*.png,*.gif"
 This would make Oniwabandana easier to use:
 ```
 :map <leader>o :Oniwabandana<CR>
+:map <leader>g :OniwabandanaGrep<CR>
 ```
 
 By default &lt;leader&gt; is backslash in vim so pushing "\o" would open Oniwabandana.

@@ -39,6 +39,10 @@ function OniwaSelectPrev()
   ruby $oniwapp.window.select -1
 endfunction
 
+function OniwaGrep(...)
+  ruby $oniwapp.grep
+endfunction
+
 function OniwaIgnore()
 endfunction
 
@@ -47,6 +51,7 @@ function s:Oniwabandana(...)
 endfunction
 
 command -nargs=? Oniwabandana call s:Oniwabandana(<q-args>)
+command -nargs=? OniwabandanaGrep call OniwaGrep(<q-args>)
 
 ruby <<EOF
 $LOAD_PATH << File.dirname(VIM::evaluate 'expand("<sfile>")')

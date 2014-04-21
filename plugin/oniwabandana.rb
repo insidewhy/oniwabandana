@@ -4,7 +4,7 @@ module Oniwabandana
   class Opts
     attr_reader :height, :case_sensitive, :backspace, :open, :close,
                 :tabopen, :tabopen_all, :tabopen_cmd, :smart_tabopen,
-                :select_prev, :select_next
+                :grep, :select_prev, :select_next
 
     def initialize
       @height = key_setting 'height', 10
@@ -16,6 +16,7 @@ module Oniwabandana
       @close = key_setting 'close', '<c-c>'
       @smart_tabopen = key_setting('smart_tabopen', '0') != 0
       @tabopen_cmd = key_setting 'tabopen_cmd', 'tabe'
+      @grep = key_setting 'grep', '<c-g>'
       @select_prev = key_setting 'select_prev', '<Up>'
       @select_next = key_setting 'select_next', '<Down>'
     end
@@ -38,12 +39,18 @@ module Oniwabandana
       @window ||= Window.new @opts
     end
 
+    def window_shown?
+      ! @window.nil?
+    end
+
     def close
       @window.close
       @window = nil
     end
 
     def search dir
+      return if window_shown?
+
       dir ||= '.'
       # todo: determine source from @opts
       files = `git ls-files`.split "\n"
@@ -61,6 +68,11 @@ module Oniwabandana
         win.show_matches
         win.register_for_keys
       end
+    end
+
+    def grep
+      search '.' unless window_shown?
+      window.enter_grep_mode
     end
   end
 end

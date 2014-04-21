@@ -1,4 +1,5 @@
 require 'match'
+require 'criteria_input'
 
 module Oniwabandana
   class Window
@@ -18,10 +19,11 @@ module Oniwabandana
       @offset = 0 # current offset from first match
       @cursor_pos = 0 # cursor offset from left hand side
       @window = nil #
-      @criteria = []
-      # true at beginning or if space was previous key pressed
-      @finished_criteria = true
+      @criteria_input = CriteriaInput.new
+      @grep_mode = false
     end
+
+    def criteria ; @criteria_input.criteria ; end
 
     def select offset
       new_sel_idx = @selected_idx + offset
@@ -100,9 +102,12 @@ module Oniwabandana
     end
 
     def accept
-      # p "accept " + get_shown_match.filename
-      VIM::command('call OniwaClose()')
-      VIM::command("edit #{get_shown_match.filename}")
+      if @grep_mode
+        # TODO: apply grep pattern then leave grep mode
+      else
+        VIM::command('call OniwaClose()')
+        VIM::command("edit #{get_shown_match.filename}")
+      end
     end
 
     def accept_in_new_tab
@@ -147,49 +152,28 @@ module Oniwabandana
         @opts.close => 'Close',
         @opts.backspace => 'Backspace',
         '<BS>' => 'Backspace',
+        @opts.grep => 'Grep',
         # '<Esc>' => 'Hide' # messes with arrow keys
       }
       special.each { |key, val| map key, val }
     end
 
     def key_press key
-      @selected_idx = @offset = 0
-      char = key.to_i.chr
-      if char == ' '
-        unless @finished_criteria
-          $curbuf.line += ' '
-          move_cursor 1
-          @finished_criteria = true
-        end
-        return
-      end
-
-      if @finished_criteria
-        @criteria << char
-        @finished_criteria = false
+      if @grep_mode
+        grep_key_press key
       else
-        @criteria[-1] += char
+        search_key_press key
       end
-
-      # replace old space at end with char and add a new one after it
-      $curbuf.line = $curbuf.line[0..-2] + char + ' '
-      move_cursor 1
-      restrict_match_criteria
     end
 
     def backspace
-      return if @cursor_pos == 0
-      $curbuf.line = $curbuf.line[0..-3] + ' '
-      move_cursor -1
-      if @finished_criteria
-        @finished_criteria = false
+      if @grep_mode
+        # TODO: backspace or leave grep mode if at beginning
       else
-        @criteria[-1] = @criteria.last[0..-2]
-        if @criteria.last.empty?
-          @criteria.pop
-          @finished_criteria = true
-        end
-        relax_match_criteria
+        return if @cursor_pos == 0
+        $curbuf.line = $curbuf.line[0..-3] + ' '
+        move_cursor -1
+        relax_match_criteria if @criteria_input.backspace
       end
     end
 
@@ -199,6 +183,14 @@ module Oniwabandana
       matched.drop(@offset).take(@n_matches_shown).each_with_index do |match, idx|
         show_match idx, match
       end
+    end
+
+    def enter_grep_mode
+      @grep_mode = true
+      suffix = criteria.empty? ? '' : ' '
+      suffix += 'grep: '
+      entry_append suffix
+      move_cursor suffix.length
     end
 
     private
@@ -217,7 +209,7 @@ module Oniwabandana
     # called after changes to @criteria to update matched
     def restrict_match_criteria
       # p @criteria
-      @matched.each { |match| match.increase_score! @criteria }
+      @matched.each { |match| match.increase_score! criteria }
       @matched.select! do |match|
         if match.matching?
           true
@@ -233,13 +225,13 @@ module Oniwabandana
 
     def relax_match_criteria
       # p @criteria
-      if @criteria.size == 0
+      if criteria.size == 0
         @rejected = []
         @matched = @files.map { |file| Match.new file, @opts }
       else
-        @matched.each { |match| match.decrease_score! @criteria }
+        @matched.each { |match| match.decrease_score! criteria }
         @rejected.reject! do |match|
-          match.calculate_score! @criteria
+          match.calculate_score! criteria
           if match.score != -1
             @matched << match
             true
@@ -262,6 +254,35 @@ module Oniwabandana
       else
         $curbuf[idx + 2] = REJECTED_PREFIX + match.filename
       end
+    end
+
+    def search_key_press key
+      @selected_idx = @offset = 0
+      char = key.to_i.chr
+      if char == ' '
+        if @criteria_input.finish_criterion
+          $curbuf.line += ' '
+          move_cursor 1
+        end
+        return
+      end
+
+      @criteria_input.add_to_criterion char
+
+      # replace old space at end with char and add a new one after it
+      entry_append char
+      move_cursor 1
+      restrict_match_criteria
+    end
+
+    def grep_key_press key
+      char = key.to_i.chr
+      entry_append char
+      move_cursor 1
+    end
+
+    def entry_append str
+      $curbuf.line = $curbuf.line[0..-2] + str + ' '
     end
 
     def move_cursor offset
