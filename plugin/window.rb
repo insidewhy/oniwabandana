@@ -17,7 +17,6 @@ module Oniwabandana
       @matched = nil # files matching current search parameters
       @rejected = nil # files not matching current search parameters
       @offset = 0 # current offset from first match
-      @cursor_pos = 0 # cursor offset from left hand side
       @window = nil #
       @criteria_input = CriteriaInput.new
       @grep_mode = false
@@ -170,9 +169,6 @@ module Oniwabandana
       if @grep_mode
         # TODO: backspace or leave grep mode if at beginning
       else
-        return if @cursor_pos == 0
-        $curbuf.line = $curbuf.line[0..-3] + ' '
-        move_cursor -1
         relax_match_criteria if @criteria_input.backspace
       end
     end
@@ -186,11 +182,12 @@ module Oniwabandana
     end
 
     def enter_grep_mode
+      return if @grep_mode
       @grep_mode = true
       suffix = criteria.empty? ? '' : ' '
       suffix += 'grep: '
-      entry_append suffix
-      move_cursor suffix.length
+      @criteria_input.entry_append suffix
+      @criteria_input.move_cursor suffix.length
     end
 
     private
@@ -260,34 +257,17 @@ module Oniwabandana
       @selected_idx = @offset = 0
       char = key.to_i.chr
       if char == ' '
-        if @criteria_input.finish_criterion
-          $curbuf.line += ' '
-          move_cursor 1
-        end
-        return
+        @criteria_input.finish_criterion
+      else
+        @criteria_input.add_to_criterion char
+        restrict_match_criteria
       end
-
-      @criteria_input.add_to_criterion char
-
-      # replace old space at end with char and add a new one after it
-      entry_append char
-      move_cursor 1
-      restrict_match_criteria
     end
 
     def grep_key_press key
       char = key.to_i.chr
-      entry_append char
-      move_cursor 1
-    end
-
-    def entry_append str
-      $curbuf.line = $curbuf.line[0..-2] + str + ' '
-    end
-
-    def move_cursor offset
-      @cursor_pos += offset
-      $curwin.cursor = [ 0, @cursor_pos ]
+      @criteria_input.entry_append char
+      @criteria_input.move_cursor 1
     end
   end
 end
