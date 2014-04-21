@@ -11,16 +11,16 @@ function OniwaSetting(name, default)
   endif
 endfunction
 
-function OniwaAccept()
-  ruby $oniwapp.window.accept
+function OniwaOpen()
+  ruby $oniwapp.window.open
 endfunction
 
-function OniwaAcceptInNewTab()
-  ruby $oniwapp.window.accept_in_new_tab
+function OniwaOpenInNewTab()
+  ruby $oniwapp.window.open_in_new_tab
 endfunction
 
-function OniwaAcceptAllInNewTab()
-  ruby $oniwapp.window.accept_all_in_new_tab
+function OniwaOpenAllInNewTab()
+  ruby $oniwapp.window.open_all_in_new_tab
 endfunction
 
 function OniwaClose()
@@ -41,6 +41,10 @@ endfunction
 
 function OniwaGrep(...)
   ruby $oniwapp.grep
+endfunction
+
+function OniwaAccept()
+  ruby $oniwapp.window.accept
 endfunction
 
 function OniwaIgnore()

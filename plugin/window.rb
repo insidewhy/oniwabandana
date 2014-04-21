@@ -3,6 +3,8 @@ require 'criteria_input'
 
 module Oniwabandana
   class Window
+    attr_reader :criteria_input
+
     GLOBAL_ONLY_OPTS = {
       'hlsearch' => true, 'scrolloff' => true, 'omnifunc' => true
     }
@@ -18,8 +20,7 @@ module Oniwabandana
       @rejected = nil # files not matching current search parameters
       @offset = 0 # current offset from first match
       @window = nil #
-      @criteria_input = CriteriaInput.new
-      @grep_mode = false
+      @criteria_input = CriteriaInput.new @opts
     end
 
     def criteria ; @criteria_input.criteria ; end
@@ -100,16 +101,13 @@ module Oniwabandana
       end
     end
 
-    def accept
-      if @grep_mode
-        # TODO: apply grep pattern then leave grep mode
-      else
-        VIM::command('call OniwaClose()')
-        VIM::command("edit #{get_shown_match.filename}")
-      end
+    def open
+      return if @criteria_input.grep_mode?
+      VIM::command('call OniwaClose()')
+      VIM::command("edit #{get_shown_match.filename}")
     end
 
-    def accept_in_new_tab
+    def open_in_new_tab
       VIM::command('call OniwaClose()')
       if @opts.smart_tabopen and $curbuf.name.nil? and VIM::evaluate('&modified') == 0
         VIM::command("edit #{get_shown_match.filename}")
@@ -118,7 +116,7 @@ module Oniwabandana
       end
     end
 
-    def accept_all_in_new_tab
+    def open_all_in_new_tab
       VIM::command('call OniwaClose()')
       @matched.each do |match|
         VIM::command("#{@opts.tabopen_cmd} #{match.filename}")
@@ -132,33 +130,8 @@ module Oniwabandana
       end
     end
 
-    def register_for_keys
-      numbers     = ('0'..'9').to_a.join
-      lowercase   = ('a'..'z').to_a.join
-      uppercase   = lowercase.upcase
-      punctuation = '<>`@#~!"$%&/()=+*-_.,;:?\\\'{}[] ' # and space
-      (numbers + lowercase + uppercase + punctuation).each_byte do |b|
-        map "<Char-#{b}>", 'HandleKey', b
-      end
-      special = {
-        @opts.open => 'Accept',
-        @opts.tabopen => 'AcceptInNewTab',
-        @opts.tabopen_all => 'AcceptAllInNewTab',
-        '<Left>' => 'Ignore',
-        '<Right>' => 'Ignore',
-        @opts.select_prev => 'SelectPrev',
-        @opts.select_next  => 'SelectNext',
-        @opts.close => 'Close',
-        @opts.backspace => 'Backspace',
-        '<BS>' => 'Backspace',
-        @opts.grep => 'Grep',
-        # '<Esc>' => 'Hide' # messes with arrow keys
-      }
-      special.each { |key, val| map key, val }
-    end
-
     def key_press key
-      if @grep_mode
+      if @criteria_input.grep_mode?
         grep_key_press key
       else
         search_key_press key
@@ -166,11 +139,7 @@ module Oniwabandana
     end
 
     def backspace
-      if @grep_mode
-        # TODO: backspace or leave grep mode if at beginning
-      else
-        relax_match_criteria if @criteria_input.backspace
-      end
+      relax_match_criteria if @criteria_input.backspace
     end
 
     def show_matches
@@ -181,13 +150,9 @@ module Oniwabandana
       end
     end
 
-    def enter_grep_mode
-      return if @grep_mode
-      @grep_mode = true
-      suffix = criteria.empty? ? '' : ' '
-      suffix += 'grep: '
-      @criteria_input.entry_append suffix
-      @criteria_input.move_cursor suffix.length
+    def accept
+      return unless @criteria_input.grep_mode?
+      puts "todo: run grep"
     end
 
     private
@@ -196,11 +161,6 @@ module Oniwabandana
       if @n_matches_shown != $curbuf.count
         VIM::command("silent! resize #{@n_matches_shown + 1}")
       end
-    end
-
-    def map key, function, param = ''
-      VIM::command "noremap <silent> <buffer> #{key} " \
-        ":call Oniwa#{function}(#{param})<CR>"
     end
 
     # called after changes to @criteria to update matched
@@ -267,7 +227,6 @@ module Oniwabandana
     def grep_key_press key
       char = key.to_i.chr
       @criteria_input.entry_append char
-      @criteria_input.move_cursor 1
     end
   end
 end

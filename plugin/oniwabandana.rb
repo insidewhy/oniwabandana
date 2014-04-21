@@ -4,7 +4,7 @@ module Oniwabandana
   class Opts
     attr_reader :height, :case_sensitive, :backspace, :open, :close,
                 :tabopen, :tabopen_all, :tabopen_cmd, :smart_tabopen,
-                :grep, :select_prev, :select_next
+                :grep, :accept, :select_prev, :select_next
 
     def initialize
       @height = key_setting 'height', 10
@@ -17,6 +17,7 @@ module Oniwabandana
       @smart_tabopen = key_setting('smart_tabopen', '0') != 0
       @tabopen_cmd = key_setting 'tabopen_cmd', 'tabe'
       @grep = key_setting 'grep', '<c-g>'
+      @accept = key_setting 'accept', '<cr>'
       @select_prev = key_setting 'select_prev', '<Up>'
       @select_next = key_setting 'select_next', '<Down>'
     end
@@ -66,13 +67,13 @@ module Oniwabandana
       win = window
       unless win.show files
         win.show_matches
-        win.register_for_keys
+        win.criteria_input.enter_search_mode
       end
     end
 
     def grep
       search '.' unless window_shown?
-      window.enter_grep_mode
+      window.criteria_input.enter_grep_mode
     end
   end
 end

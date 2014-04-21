@@ -35,6 +35,7 @@ let g:oniwa_select_prev="<Up>"
 let g:oniwa_select_next="<Down>"
 let g:oniwa_tabopen_all="<c-e>"
 let g:oniwa_grep="<c-g>"
+let g:oniwa_accept="<cr>"  " used to accept new grep pattern
 
 " This is a vim setting that Oniwabandana uses to filter matches.
 set wildignore="*.png,*.gif"
