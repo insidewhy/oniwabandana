@@ -3,12 +3,15 @@ require 'window'
 module Oniwabandana
   class Opts
     attr_reader :height, :case_sensitive, :backspace, :open, :close,
-                :tabopen, :tabopen_cmd, :smart_tabopen, :select_prev, :select_next
+                :tabopen, :tabopen_all, :tabopen_cmd, :smart_tabopen,
+                :select_prev, :select_next
+
     def initialize
       @height = key_setting 'height', 10
       @case_sensitive = key_setting('case_sensitive', 0) != 0
       @backspace = key_setting 'backspace', '<c-h>'
       @tabopen = key_setting 'tabopen', '<c-t>'
+      @tabopen_all = key_setting 'tabopen_all', '<c-e>'
       @open = key_setting 'open', '<cr>'
       @close = key_setting 'close', '<c-c>'
       @smart_tabopen = key_setting('smart_tabopen', '0') != 0

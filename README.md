@@ -31,6 +31,7 @@ let g:oniwa_close="<c-c>"
 let g:oniwa_tabopen_cmd="tabe"  " try "tab drop" to switch to existing open tab
 let g:oniwa_select_prev="<Up>"
 let g:oniwa_select_next="<Down>"
+let g:oniwa_tabopen_all="<c-e>"
 
 " This is a vim setting that Oniwabandana uses to filter matches.
 set wildignore="*.png,*.gif"

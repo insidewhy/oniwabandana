@@ -114,6 +114,13 @@ module Oniwabandana
       end
     end
 
+    def accept_all_in_new_tab
+      VIM::command('call OniwaClose()')
+      @matched.each do |match|
+        VIM::command("#{@opts.tabopen_cmd} #{match.filename}")
+      end
+    end
+
     def close
       if @has_buffer
         VIM::command("silent! q!")
@@ -132,6 +139,7 @@ module Oniwabandana
       special = {
         @opts.open => 'Accept',
         @opts.tabopen => 'AcceptInNewTab',
+        @opts.tabopen_all => 'AcceptAllInNewTab',
         '<Left>' => 'Ignore',
         '<Right>' => 'Ignore',
         @opts.select_prev => 'SelectPrev',
